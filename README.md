@@ -1,28 +1,43 @@
-# ch397 linux driver
-## Description
+# CH397/CH398 USB Ethernet driver package
 
-USB2.0 to 100Mbps ethernet chip ch397 is fully compliant to the Communications Device Class (CDC) standard, it works with this vendor driver or standard CDC-ECM driver (CDC - Ethernet Networking Control Model). Linux operating systems supply a default CDC-ECM driver that can be used, the driver is cdc_ether.
+Cross-platform driver support for WCH's CH397/CH398/CH336/CH339/CH396/CH9153
+USB-to-Ethernet chips (USB VID `0x1a86`), for Linux and Windows (x64 + ARM64).
 
-The CDC-ECM driver has limited capabilities to control specific devices. This generic driver does not have any knowledge about specific device protocols. Because of this, device manufacturers can create an alternate, or custom driver that is capable of accessing the device specific function sets.
+| Platform | Approach | Location |
+|----------|----------|----------|
+| Linux | Official vendor kernel module (`ch397.ko`) | [`linux/`](linux/) |
+| Windows x64 / ARM64 | User-mode WinUSB client + Wintun virtual adapter, reimplementing the same USB vendor protocol (no official WCH ARM64 driver exists) | [`windows/`](windows/) |
 
-When use this vendor driver,  you needn't remove the cdc_ether driver cause this vendor driver supports automatic detection of chip mode and active switching in kernel version beyond 5.6.x, in lower versions, you need to actively uninstall the CDC-ECM driver. If you can modify the system kernel source code, you can add devices supported by the ch397 driver to the blacklist in cdc_ether.c file.
+The shared USB vendor protocol (register map, command IDs, frame framing)
+used by both implementations is documented once in
+[`docs/protocol.md`](docs/protocol.md).
 
-This driver supports USB2.0 to 100Mbps ethernet chip ch397.
+## Installing
 
-1. Open "Terminal"
-2. Switch to "driver" directory
-3. Compile the driver using "make", you will see the module "ch397.ko" if successful
-4. Type "sudo make load" or "sudo insmod ch397.ko" to load the driver dynamically
-5. Type "sudo make unload" or "sudo rmmod ch397.ko" to unload the driver
-6. Type "sudo make install" to make the driver work permanently
-7. Type "sudo make uninstall" to remove the driver
+- **Linux**: `sudo installer/linux/install.sh` — builds the module and
+  registers it with DKMS so it survives kernel upgrades. See
+  [`linux/README.md`](linux/README.md) for manual `make`-based steps.
+- **Windows**: run the GUI installer for your architecture from
+  `installer/windows/` (`ch397-driver-setup-x64.exe` /
+  `ch397-driver-setup-arm64.exe`). See
+  [`installer/windows/README.md`](installer/windows/README.md) for how
+  those are built, including the driver-signing step required before
+  distributing one.
 
-Before the driver works, you should make sure that the usb device has been plugged in and is working properly, you can use shell command "lsusb" or "dmesg" to confirm that, USB VID is [1a86], you can view all IDs from the id table which defined in "ch397.c".
+## Why Windows isn't just "the vendor driver, ARM64 build"
 
-If the device works well, the driver will create a new net device, you can use shell command "ifconfig" to confirm the details.
+WCH only publishes an official Windows driver for x86/x64
+(`WCHUSBNIC.EXE`); there is no official ARM64 build. Rather than depend on
+an unofficial, unverifiable ARM64 binary circulating in a forum thread, the
+Windows side of this repo reimplements the same USB vendor protocol as a
+user-mode WinUSB client (see [`windows/README.md`](windows/README.md) for
+scope and current limitations vs. the Linux driver).
 
-## Note
+## Repo layout
 
-If you need the driver under uboot, please refer to another repo.
-
-Any question, you can send feedback to mail: tech@wch.cn
+```
+linux/        Linux kernel module (unchanged from the original vendor driver)
+windows/      Windows WinUSB client + Wintun bridge service, and the INF that binds the device to WinUSB
+installer/    Per-platform "easy install" packaging (DKMS script for Linux, Inno Setup project for Windows)
+docs/         Shared USB protocol reference used by both platforms
+```

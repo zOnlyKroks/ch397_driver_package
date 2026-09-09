@@ -1,0 +1,57 @@
+; ch397.inf
+; Binds WCH CH397/CH398 USB-to-Ethernet chips to the in-box WinUSB driver.
+; The ch397svc Windows service (windows/service/) talks to the device over
+; WinUSB and bridges frames to a Wintun virtual network adapter; no
+; kernel-mode driver code is installed by this INF.
+;
+; See docs/protocol.md for the USB vendor protocol this is paired with.
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = USBDevice
+ClassGuid   = {88BAE032-5A81-49f0-BC3D-A4FF138216D6}
+Provider    = %ProviderName%
+CatalogFile = ch397.cat
+DriverVer   = 09/09/2026,1.0.0.0
+
+[Manufacturer]
+%ProviderName% = ChipDevices, NTamd64, NTarm64
+
+[ChipDevices.NTamd64]
+%DeviceName.5394% = USB_Install, USB\VID_1A86&PID_5394
+%DeviceName.5395% = USB_Install, USB\VID_1A86&PID_5395
+%DeviceName.5396% = USB_Install, USB\VID_1A86&PID_5396
+%DeviceName.5397% = USB_Install, USB\VID_1A86&PID_5397
+%DeviceName.5398% = USB_Install, USB\VID_1A86&PID_5398
+%DeviceName.E398% = USB_Install, USB\VID_1A86&PID_E398
+
+[ChipDevices.NTarm64]
+%DeviceName.5394% = USB_Install, USB\VID_1A86&PID_5394
+%DeviceName.5395% = USB_Install, USB\VID_1A86&PID_5395
+%DeviceName.5396% = USB_Install, USB\VID_1A86&PID_5396
+%DeviceName.5397% = USB_Install, USB\VID_1A86&PID_5397
+%DeviceName.5398% = USB_Install, USB\VID_1A86&PID_5398
+%DeviceName.E398% = USB_Install, USB\VID_1A86&PID_E398
+
+[USB_Install]
+Include = winusb.inf
+Needs   = WINUSB.NT
+
+[USB_Install.Services]
+Include = winusb.inf
+Needs   = WINUSB.NT.Services
+
+[USB_Install.HW]
+AddReg = Dev_AddReg
+
+[Dev_AddReg]
+HKR,,DeviceInterfaceGUIDs,0x10000,"{6E36A4A1-1F0C-4A6D-9D1B-2C1E4C9F2B77}"
+
+[Strings]
+ProviderName      = "CloudPirates"
+DeviceName.5394   = "WCH CH336 USB Ethernet (WinUSB)"
+DeviceName.5395   = "WCH CH339 USB Ethernet (WinUSB)"
+DeviceName.5396   = "WCH CH396 USB Ethernet (WinUSB)"
+DeviceName.5397   = "WCH CH397 USB Ethernet (WinUSB)"
+DeviceName.5398   = "WCH CH398 USB Ethernet (WinUSB)"
+DeviceName.E398   = "WCH CH9153 USB Ethernet (WinUSB)"
